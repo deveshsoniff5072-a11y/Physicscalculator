@@ -147,53 +147,7 @@ const formulas = [
       }
     }
   },
-  function addMissingUnits() {
-  // Add these to your existing conversions object:
-  const additionalConversions = {
-    // Missing length units
-    'μm': 1e-6, 'nm': 1e-9, 'pm': 1e-12,
-    
-    // Missing energy units  
-    'MeV': 1.602e-13, 'GeV': 1.602e-10,
-    
-    // Missing frequency
-    'THz': 1e12,
-    
-    // Missing capacitance
-    'μF': 1e-6, 'nF': 1e-9, 'pF': 1e-12,
-    
-    // Missing inductance
-    'mH': 0.001,
-    
-    // Missing time
-    'years': 31557600, 'days': 86400,
-    
-    // Angular velocity
-    'rpm': Math.PI/30, // Convert RPM to rad/s
-    
-    // Astronomy
-    'AU': 1.496e11
-  };
-  
-  return additionalConversions;
-},
 
-// Test function to verify angle calculations
-function testAngleCalculations() {
-  // Test projectile range at 45° (optimal angle)
-  const testVars = {
-    u: 20,      // 20 m/s
-    θ: Math.PI/4,  // 45° in radians (already converted)
-    g: 9.8      // 9.8 m/s²
-  };
-  
-  const expectedRange = 20*20*Math.sin(2*Math.PI/4)/9.8; // Should be ~40.8m
-  console.log("Expected range at 45°:", expectedRange);
-  
-  const calculatedRange = fixedProjectileFormulas.range.solve("R", testVars);
-  console.log("Calculated range:", calculatedRange);
-  console.log("Match:", Math.abs(expectedRange - calculatedRange) < 0.01);
-},
 
   // FORCES AND NEWTON'S LAWS
   {
@@ -256,13 +210,13 @@ function testAngleCalculations() {
       { symbol: "θ", name: "Angle", units: ["°", "rad"], defaultUnit: "°" }
     ],
     solve: (target, vars) => {
-      const toRad = angle => angle * Math.PI / 180;
-      const toDeg = rad => rad * 180 / Math.PI;
+      const toRad = angle => angle ;
+      const toDeg = rad => rad ;
       switch(target) {
-        case "W": return vars.F * vars.s * Math.cos(toRad(vars.θ));
-        case "F": return vars.W / (vars.s * Math.cos(toRad(vars.θ)));
-        case "s": return vars.W / (vars.F * Math.cos(toRad(vars.θ)));
-        case "θ": return toDeg(Math.acos(vars.W / (vars.F * vars.s)));
+        case "W": return vars.F * vars.s * Math.cos(vars.θ);
+        case "F": return vars.W / (vars.s * Math.cos(vars.θ));
+        case "s": return vars.W / (vars.F * Math.cos(vars.θ));
+        case "θ": return (Math.acos(vars.W / (vars.F * vars.s)));
       }
     }
   },
@@ -1074,13 +1028,13 @@ function testAngleCalculations() {
       { symbol: "θ2", name: "Angle 2", units: ["°", "rad"], defaultUnit: "°" }
     ],
     solve: (target, vars) => {
-      const toRad = (angle) => angle * Math.PI / 180;
-      const toDeg = (rad) => rad * 180 / Math.PI;
+      const toRad = (angle) => angle ;
+      const toDeg = (rad) => rad ;
       switch(target) {
-        case "n1": return vars.n2 * Math.sin(toRad(vars.θ2)) / Math.sin(toRad(vars.θ1));
-        case "θ1": return toDeg(Math.asin(vars.n2 * Math.sin(toRad(vars.θ2)) / vars.n1));
-        case "n2": return vars.n1 * Math.sin(toRad(vars.θ1)) / Math.sin(toRad(vars.θ2));
-        case "θ2": return toDeg(Math.asin(vars.n1 * Math.sin(toRad(vars.θ1)) / vars.n2));
+        case "n1": return vars.n2 * Math.sin(vars.θ2) / Math.sin(vars.θ1);
+        case "θ1": return (Math.asin(vars.n2 * Math.sin(vars.θ2) / vars.n1));
+        case "n2": return vars.n1 * Math.sin(vars.θ1) / Math.sin(vars.θ2);
+        case "θ2": return (Math.asin(vars.n1 * Math.sin(vars.θ1) / vars.n2));
       }
     }
   },
@@ -1095,8 +1049,8 @@ function testAngleCalculations() {
     solve: (target, vars) => {
       switch(target) {
         case "θc": return Math.asin(vars.n2 / vars.n1) * (180 / Math.PI);
-        case "n1": return vars.n2 / Math.sin(vars.θc * Math.PI / 180);
-        case "n2": return vars.n1 * Math.sin(vars.θc * Math.PI / 180);
+        case "n1": return vars.n2 / Math.sin(vars.θc );
+        case "n2": return vars.n1 * Math.sin(vars.θc );
       }
     }
   },
@@ -1212,8 +1166,8 @@ function testAngleCalculations() {
       const c = 3e8;
       const compton_wavelength = h / (me * c); // 2.43e-12 m
       switch(target) {
-        case "Δλ": return compton_wavelength * (1 - Math.cos(vars.θ * Math.PI / 180));
-        case "θ": return Math.acos(1 - vars.Δλ / compton_wavelength) * 180 / Math.PI;
+        case "Δλ": return compton_wavelength * (1 - Math.cos(vars.θ ));
+        case "θ": return Math.acos(1 - vars.Δλ / compton_wavelength) ;
       }
     }
   },
@@ -1676,16 +1630,63 @@ function testAngleCalculations() {
       { symbol: "λ", name: "Wavelength", units: ["m"], defaultUnit: "m" }
     ],
     solve: (target, vars) => {
-      const toRad = deg => deg * Math.PI / 180;
-      const toDeg = rad => rad * 180 / Math.PI;
+      const toRad = deg => deg ;
+      const toDeg = rad => rad ;
       switch(target) {
-        case "d": return (vars.m * vars.λ) / Math.sin(toRad(vars.θ));
-        case "θ": return toDeg(Math.asin((vars.m * vars.λ) / vars.d));
-        case "m": return (vars.d * Math.sin(toRad(vars.θ))) / vars.λ;
-        case "λ": return (vars.d * Math.sin(toRad(vars.θ))) / vars.m;
+        case "d": return (vars.m * vars.λ) / Math.sin(vars.θ);
+        case "θ": return (Math.asin((vars.m * vars.λ) / vars.d));
+        case "m": return (vars.d * Math.sin(vars.θ)) / vars.λ;
+        case "λ": return (vars.d * Math.sin(vars.θ)) / vars.m;
       }
     }
-  }
+  },
+    function () {
+  // Add these to your existing conversions object:
+  const additionalConversions = {
+    // Missing length units
+    'μm': 1e-6, 'nm': 1e-9, 'pm': 1e-12,
+    
+    // Missing energy units  
+    'MeV': 1.602e-13, 'GeV': 1.602e-10,
+    
+    // Missing frequency
+    'THz': 1e12,
+    
+    // Missing capacitance
+    'μF': 1e-6, 'nF': 1e-9, 'pF': 1e-12,
+    
+    // Missing inductance
+    'mH': 0.001,
+    
+    // Missing time
+    'years': 31557600, 'days': 86400,
+    
+    // Angular velocity
+    'rpm': Math.PI/30, // Convert RPM to rad/s
+    
+    // Astronomy
+    'AU': 1.496e11
+  };
+  
+  return additionalConversions;
+},
+
+// Test function to verify angle calculations
+function () {
+  // Test projectile range at 45° (optimal angle)
+  const testVars = {
+    u: 20,      // 20 m/s
+    θ: Math.PI/4,  // 45° in radians (already converted)
+    g: 9.8      // 9.8 m/s²
+  };
+  
+  const expectedRange = 20*20*Math.sin(2*Math.PI/4)/9.8; // Should be ~40.8m
+  console.log("Expected range at 45°:", expectedRange);
+  
+  const calculatedRange = fixedProjectileFormulas.range.solve("R", testVars);
+  console.log("Calculated range:", calculatedRange);
+  console.log("Match:", Math.abs(expectedRange - calculatedRange) < 0.01);
+},
   
 
 ];
