@@ -75,18 +75,28 @@ const formulas = [
       { symbol: "g", name: "Gravity", units: ["m/s²"], defaultUnit: "m/s²" }
     ],
     solve: (target, vars) => {
-      const toRad = angle => angle * Math.PI / 180;
-      const toDeg = rad => rad * 180 / Math.PI;
+      // vars.θ is already in radians from convertToBase()
       switch(target) {
-        case "R": return vars.u * vars.u * Math.sin(2 * toRad(vars.θ)) / vars.g;
-        case "u": return Math.sqrt(vars.R * vars.g / Math.sin(2 * toRad(vars.θ)));
-        case "θ": return toDeg(Math.asin(vars.R * vars.g / (vars.u * vars.u)) / 2);
-        case "g": return vars.u * vars.u * Math.sin(2 * toRad(vars.θ)) / vars.R;
+        case "R": 
+          return vars.u * vars.u * Math.sin(2 * vars.θ) / vars.g;
+        case "u": 
+          const sinValue = Math.sin(2 * vars.θ);
+          if (Math.abs(sinValue) < 1e-10) throw new Error("Invalid angle - too close to 0° or 90°");
+          return Math.sqrt(vars.R * vars.g / sinValue);
+        case "θ": 
+          const argValue = vars.R * vars.g / (vars.u * vars.u);
+          if (argValue > 1) throw new Error("Impossible range - reduce distance or increase velocity");
+          if (argValue < 0) throw new Error("Invalid parameters");
+          return Math.asin(argValue) / 2; // Returns radians
+        case "g": 
+          const sinVal = Math.sin(2 * vars.θ);
+          if (Math.abs(sinVal) < 1e-10) throw new Error("Invalid angle");
+          return vars.u * vars.u * sinVal / vars.R;
       }
     }
   },
   {
-    name: "Maximum Height (H = u²sin²θ/2g)",
+    name: "Maximum Height (H = u²(sin²θ))/2g)",
     category: "Projectile Motion",
     variables: [
       { symbol: "H", name: "Max height", units: ["m", "cm"], defaultUnit: "m" },
@@ -95,18 +105,24 @@ const formulas = [
       { symbol: "g", name: "Gravity", units: ["m/s²"], defaultUnit: "m/s²" }
     ],
     solve: (target, vars) => {
-      const toRad = angle => angle * Math.PI / 180;
-      const toDeg = rad => rad * 180 / Math.PI;
+      // vars.θ is already in radians
+      const sinTheta = Math.sin(vars.θ);
       switch(target) {
-        case "H": return vars.u * vars.u * Math.sin(toRad(vars.θ)) * Math.sin(toRad(vars.θ)) / (2 * vars.g);
-        case "u": return Math.sqrt(2 * vars.g * vars.H / (Math.sin(toRad(vars.θ)) * Math.sin(toRad(vars.θ))));
-        case "θ": return toDeg(Math.asin(Math.sqrt(2 * vars.g * vars.H) / vars.u));
-        case "g": return vars.u * vars.u * Math.sin(toRad(vars.θ)) * Math.sin(toRad(vars.θ)) / (2 * vars.H);
+        case "H": 
+          return vars.u * vars.u * sinTheta * sinTheta / (2 * vars.g);
+        case "u": 
+          return Math.sqrt(2 * vars.g * vars.H / (sinTheta * sinTheta));
+        case "θ": 
+          const ratio = Math.sqrt(2 * vars.g * vars.H) / vars.u;
+          if (ratio > 1) throw new Error("Impossible height - reduce height or increase velocity");
+          return Math.asin(ratio); // Returns radians
+        case "g": 
+          return vars.u * vars.u * sinTheta * sinTheta / (2 * vars.H);
       }
     }
   },
   {
-    name: "Time of Flight (T = 2usinθ/g)",
+    name: "Time of Flight (T = 2u(sinθ))/g)",
     category: "Projectile Motion",
     variables: [
       { symbol: "T", name: "Time of flight", units: ["s"], defaultUnit: "s" },
@@ -115,16 +131,69 @@ const formulas = [
       { symbol: "g", name: "Gravity", units: ["m/s²"], defaultUnit: "m/s²" }
     ],
     solve: (target, vars) => {
-      const toRad = angle => angle * Math.PI / 180;
-      const toDeg = rad => rad * 180 / Math.PI;
+      // vars.θ is already in radians
+      const sinTheta = Math.sin(vars.θ);
       switch(target) {
-        case "T": return 2 * vars.u * Math.sin(toRad(vars.θ)) / vars.g;
-        case "u": return vars.T * vars.g / (2 * Math.sin(toRad(vars.θ)));
-        case "θ": return toDeg(Math.asin(vars.T * vars.g / (2 * vars.u)));
-        case "g": return 2 * vars.u * Math.sin(toRad(vars.θ)) / vars.T;
+        case "T": 
+          return 2 * vars.u * sinTheta / vars.g;
+        case "u": 
+          return vars.T * vars.g / (2 * sinTheta);
+        case "θ": 
+          const ratio = vars.T * vars.g / (2 * vars.u);
+          if (ratio > 1) throw new Error("Impossible time - check parameters");
+          return Math.asin(ratio); // Returns radians
+        case "g": 
+          return 2 * vars.u * sinTheta / vars.T;
       }
     }
   },
+  function addMissingUnits() {
+  // Add these to your existing conversions object:
+  const additionalConversions = {
+    // Missing length units
+    'μm': 1e-6, 'nm': 1e-9, 'pm': 1e-12,
+    
+    // Missing energy units  
+    'MeV': 1.602e-13, 'GeV': 1.602e-10,
+    
+    // Missing frequency
+    'THz': 1e12,
+    
+    // Missing capacitance
+    'μF': 1e-6, 'nF': 1e-9, 'pF': 1e-12,
+    
+    // Missing inductance
+    'mH': 0.001,
+    
+    // Missing time
+    'years': 31557600, 'days': 86400,
+    
+    // Angular velocity
+    'rpm': Math.PI/30, // Convert RPM to rad/s
+    
+    // Astronomy
+    'AU': 1.496e11
+  };
+  
+  return additionalConversions;
+},
+
+// Test function to verify angle calculations
+function testAngleCalculations() {
+  // Test projectile range at 45° (optimal angle)
+  const testVars = {
+    u: 20,      // 20 m/s
+    θ: Math.PI/4,  // 45° in radians (already converted)
+    g: 9.8      // 9.8 m/s²
+  };
+  
+  const expectedRange = 20*20*Math.sin(2*Math.PI/4)/9.8; // Should be ~40.8m
+  console.log("Expected range at 45°:", expectedRange);
+  
+  const calculatedRange = fixedProjectileFormulas.range.solve("R", testVars);
+  console.log("Calculated range:", calculatedRange);
+  console.log("Match:", Math.abs(expectedRange - calculatedRange) < 0.01);
+},
 
   // FORCES AND NEWTON'S LAWS
   {

@@ -334,33 +334,280 @@ function formatScientific(value, unit) {
 }
 
 // Unit conversion functions
+// Enhanced unit conversion functions with missing units and better error handling
 function convertToBase(value, unit) {
+  if (isNaN(value) || !isFinite(value)) return NaN;
+  
   const conversions = {
-    'cm': 0.01, 'mm': 0.001, 'km': 1000, 'g': 0.001, 'ton': 1000,
-    'ms': 0.001, 'min': 60, 'h': 3600, 'kN': 1000, 'kJ': 1000,
-    'MJ': 1e6, 'eV': 1.602e-19, 'kW': 1000, 'MW': 1e6,
-    'kHz': 1000, 'MHz': 1e6, 'mV': 0.001, 'kV': 1000,
-    'mA': 0.001, 'μA': 1e-6, 'kΩ': 1000, 'MΩ': 1e6,
-    '°': Math.PI/180, '%': 0.01
+    // Length
+    'cm': 0.01, 'mm': 0.001, 'km': 1000, 'μm': 1e-6, 'nm': 1e-9, 'pm': 1e-12,
+    
+    // Mass
+    'g': 0.001, 'ton': 1000, 'u': 1.66054e-27,
+    
+    // Time
+    'ms': 0.001, 'min': 60, 'h': 3600, 'years': 31557600, 'days': 86400,
+    
+    // Force/Energy
+    'kN': 1000, 'dyne': 1e-5, 'kJ': 1000, 'MJ': 1e6, 'eV': 1.602e-19, 'MeV': 1.602e-13, 'GeV': 1.602e-10, 'cal': 4.184,
+    
+    // Power
+    'kW': 1000, 'MW': 1e6,
+    
+    // Frequency
+    'kHz': 1000, 'MHz': 1e6, 'THz': 1e12,
+    
+    // Voltage/Current/Resistance
+    'mV': 0.001, 'kV': 1000, 'mA': 0.001, 'μA': 1e-6, 'kΩ': 1000, 'MΩ': 1e6,
+    
+    // Capacitance/Inductance
+    'μF': 1e-6, 'nF': 1e-9, 'pF': 1e-12, 'mH': 0.001,
+    
+    // Area/Volume
+    'cm²': 1e-4, 'L': 0.001,
+    
+    // Pressure
+    'atm': 101325, 'bar': 1e5, 'mmHg': 133.322,
+    
+    // Activity
+    'Ci': 3.7e10,
+    
+    // Angles - CRITICAL: Convert to radians for calculations
+    '°': Math.PI/180,
+    'rad': 1, // Already in base unit
+    
+    // Percentages
+    '%': 0.01,
+    
+    // Angular velocity
+    'rpm': Math.PI/30, // Convert RPM to rad/s
+    
+    // Astronomical units
+    'AU': 1.496e11
   };
   
+  // Special case for temperature conversion
   if (unit === '°C') return value + 273.15;
+  
   return value * (conversions[unit] || 1);
 }
 
 function convertFromBase(value, unit) {
+  if (isNaN(value) || !isFinite(value)) return NaN;
+  
   const conversions = {
-    'cm': 100, 'mm': 1000, 'km': 0.001, 'g': 1000, 'ton': 0.001,
-    'ms': 1000, 'min': 1/60, 'h': 1/3600, 'kN': 0.001, 'kJ': 0.001,
-    'MJ': 1e-6, 'eV': 1/1.602e-19, 'kW': 0.001, 'MW': 1e-6,
-    'kHz': 0.001, 'MHz': 1e-6, 'mV': 1000, 'kV': 0.001,
-    'mA': 1000, 'μA': 1e6, 'kΩ': 0.001, 'MΩ': 1e-6,
-    '°': 180/Math.PI, '%': 100
+    // Length
+    'cm': 100, 'mm': 1000, 'km': 0.001, 'μm': 1e6, 'nm': 1e9, 'pm': 1e12,
+    
+    // Mass
+    'g': 1000, 'ton': 0.001, 'u': 1/1.66054e-27,
+    
+    // Time
+    'ms': 1000, 'min': 1/60, 'h': 1/3600, 'years': 1/31557600, 'days': 1/86400,
+    
+    // Force/Energy
+    'kN': 0.001, 'dyne': 1e5, 'kJ': 0.001, 'MJ': 1e-6, 'eV': 1/1.602e-19, 'MeV': 1/1.602e-13, 'GeV': 1/1.602e-10, 'cal': 1/4.184,
+    
+    // Power
+    'kW': 0.001, 'MW': 1e-6,
+    
+    // Frequency
+    'kHz': 0.001, 'MHz': 1e-6, 'THz': 1e-12,
+    
+    // Voltage/Current/Resistance
+    'mV': 1000, 'kV': 0.001, 'mA': 1000, 'μA': 1e6, 'kΩ': 0.001, 'MΩ': 1e-6,
+    
+    // Capacitance/Inductance
+    'μF': 1e6, 'nF': 1e9, 'pF': 1e12, 'mH': 1000,
+    
+    // Area/Volume
+    'cm²': 1e4, 'L': 1000,
+    
+    // Pressure
+    'atm': 1/101325, 'bar': 1e-5, 'mmHg': 1/133.322,
+    
+    // Activity
+    'Ci': 1/3.7e10,
+    
+    // Angles - CRITICAL: Convert from radians back to display unit
+    '°': 180/Math.PI,
+    'rad': 1, // Already in base unit
+    
+    // Percentages
+    '%': 100,
+    
+    // Angular velocity
+    'rpm': 30/Math.PI, // Convert rad/s to RPM
+    
+    // Astronomical units
+    'AU': 1/1.496e11
   };
   
+  // Special case for temperature conversion
   if (unit === '°C') return value - 273.15;
+  
   if (unit === '' || !unit) return value;
   return value * (conversions[unit] || 1);
+}
+
+// Enhanced angle conversion utility
+function convertAngle(value, fromUnit, toUnit) {
+  if (fromUnit === toUnit) return value;
+  
+  // Convert to radians first
+  let radians;
+  if (fromUnit === '°') {
+    radians = value * Math.PI / 180;
+  } else if (fromUnit === 'rad') {
+    radians = value;
+  } else {
+    return NaN; // Unknown unit
+  }
+  
+  // Convert from radians to target unit
+  if (toUnit === '°') {
+    return radians * 180 / Math.PI;
+  } else if (toUnit === 'rad') {
+    return radians;
+  } else {
+    return NaN; // Unknown unit
+  }
+}
+
+// Fixed calculation function with proper error handling
+function performCalculation() {
+  if (!selectedFormula || !variableSelect.value) {
+    alert("Please select a formula and variable to calculate.");
+    return;
+  }
+
+  const targetSymbol = variableSelect.value;
+  const targetVar = selectedFormula.variables.find(v => v.symbol === targetSymbol);
+  const vars = {};
+
+  let hasError = false;
+  let errorMessage = "";
+
+  // Collect all input values and convert to base units
+  inputsContainer.querySelectorAll("div").forEach(div => {
+    const input = div.querySelector("input");
+    const unitSel = div.querySelector("select");
+    
+    if (!input || !unitSel) return;
+    
+    const value = parseFloat(input.value);
+    const unit = unitSel.value;
+    const symbol = input.dataset.symbol;
+    
+    if (isNaN(value)) {
+      hasError = true;
+      errorMessage = `Please enter a valid number for ${symbol}`;
+      input.style.borderColor = "red";
+      return;
+    }
+    
+    // Reset border color
+    input.style.borderColor = "";
+    
+    try {
+      // Convert to base unit for calculation
+      const baseValue = convertToBase(value, unit);
+      
+      if (isNaN(baseValue) || !isFinite(baseValue)) {
+        hasError = true;
+        errorMessage = `Invalid conversion for ${symbol} with unit ${unit}`;
+        input.style.borderColor = "red";
+        return;
+      }
+      
+      vars[symbol] = baseValue;
+    } catch (error) {
+      hasError = true;
+      errorMessage = `Error converting ${symbol}: ${error.message}`;
+      input.style.borderColor = "red";
+      return;
+    }
+  });
+
+  if (hasError) {
+    alert(errorMessage);
+    return;
+  }
+
+  try {
+    // Perform calculation
+    const result = selectedFormula.solve(targetSymbol, vars);
+    
+    if (isNaN(result) || !isFinite(result)) {
+      throw new Error("Calculation resulted in invalid value (NaN or Infinity)");
+    }
+    
+    // Convert result back to display unit
+    const displayValue = convertFromBase(result, targetVar.defaultUnit);
+    
+    if (isNaN(displayValue) || !isFinite(displayValue)) {
+      throw new Error("Error converting result to display unit");
+    }
+    
+    // Format and display result
+    const formattedResult = formatScientific(displayValue, targetVar.defaultUnit);
+    resultEl.innerHTML = formattedResult;
+
+    // Add to history
+    const historyItem = `${selectedFormula.name.split('(')[0].trim()}: ${targetSymbol} = ${formattedResult}`;
+    history.unshift(historyItem);
+    if (history.length > 10) history.pop();
+    renderHistory();
+    
+  } catch (error) {
+    console.error("Calculation error:", error);
+    alert(`Calculation error: ${error.message}. Please check your inputs and try again.`);
+  }
+}
+
+// Example of fixed formula with proper angle handling
+const fixedProjectileRangeFormula = {
+  name: "Projectile Range (R = u²sin2θ/g)",
+  category: "Projectile Motion",
+  variables: [
+    { symbol: "R", name: "Range", units: ["m", "cm", "km"], defaultUnit: "m" },
+    { symbol: "u", name: "Initial velocity", units: ["m/s"], defaultUnit: "m/s" },
+    { symbol: "θ", name: "Angle", units: ["°", "rad"], defaultUnit: "°" },
+    { symbol: "g", name: "Gravity", units: ["m/s²"], defaultUnit: "m/s²" }
+  ],
+  solve: (target, vars) => {
+    // Note: vars.θ is already in radians due to convertToBase()
+    const theta_rad = vars.θ; // Already converted to radians
+    
+    switch(target) {
+      case "R": 
+        return vars.u * vars.u * Math.sin(2 * theta_rad) / vars.g;
+      case "u": 
+        const sinValue = Math.sin(2 * theta_rad);
+        if (sinValue <= 0) throw new Error("Invalid angle for this calculation");
+        return Math.sqrt(vars.R * vars.g / sinValue);
+      case "θ": 
+        const argValue = vars.R * vars.g / (vars.u * vars.u);
+        if (argValue > 1 || argValue < -1) throw new Error("No valid angle exists for these parameters");
+        return Math.asin(argValue) / 2; // Result in radians, will be converted back by convertFromBase
+      case "g": 
+        return vars.u * vars.u * Math.sin(2 * theta_rad) / vars.R;
+      default:
+        throw new Error("Unknown target variable");
+    }
+  }
+};
+
+// Debug function to test conversions
+function debugConversions() {
+  console.log("Testing angle conversions:");
+  console.log("45° to base:", convertToBase(45, "°")); // Should be π/4 ≈ 0.785
+  console.log("π/4 rad from base:", convertFromBase(Math.PI/4, "°")); // Should be 45
+  
+  console.log("\nTesting other conversions:");
+  console.log("100 cm to base:", convertToBase(100, "cm")); // Should be 1
+  console.log("1000 g to base:", convertToBase(1000, "g")); // Should be 1
+  console.log("1 kW to base:", convertToBase(1, "kW")); // Should be 1000
 }
 
 // UI Functions
