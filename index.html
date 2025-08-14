@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>Physics Calculator | Formulas, Equations & Tools for Students</title>
+<meta name="description" content="Physics Calculator - Find formulas, solve equations, and learn physics concepts easily. Perfect for students, teachers, and enthusiasts worldwide.">
+<meta name="keywords" content="physics calculator, physics formulas, science equations, kinematics, projectile motion, work and energy, quantum mechanics">
+<meta name="author" content="Physics Hub Team">
+<meta name="robots" content="index, follow">
+
+<!-- Open Graph for Social Sharing -->
+<meta property="og:title" content="Physics Calculator - Formulas & Equations">
+<meta property="og:description" content="Free Physics Calculator with formulas, step-by-step calculations, and educational blogs.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://yourdomain.com/">
+<meta property="og:image" content="https://yourdomain.com/preview-image.jpg">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Physics Calculator - Formulas & Equations">
+<meta name="twitter:description" content="Free Physics Calculator with formulas and step-by-step solutions.">
+<meta name="twitter:image" content="https://yourdomain.com/preview-image.jpg">
+
+<!-- Canonical URL -->
+<link rel="canonical" href="https://yourdomain.com/">
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Physics Calculator",
+  "url": "https://yourdomain.com/",
+  "description": "A comprehensive physics calculator with formulas, step-by-step calculations, and educational resources.",
+  "applicationCategory": "EducationalApplication",
+  "operatingSystem": "Any",
+  "creator": {
+    "@type": "Organization",
+    "name": "Physics Hub Team"
+  }
+}
+</script>
+
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" />
+<link rel="stylesheet" href="styles.css">
+</head>
+
+
+<body class="main-bg">
+  <button class="hamburger" id="hamburger">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+  <nav class="sidebar" id="sidebar">
+    <ul class="sidebar-nav">
+      <li>
+        <a class="nav-link active" data-page="home" href="#">
+          🏠 Home
+        </a>
+      </li>
+      <li>
+        <a class="nav-link" data-page="favorites" href="#">
+          ⭐ Favorites
+        </a>
+      </li>
+      <li>
+        <a class="nav-link" data-page="blog" href="#">
+          📖 Blog
+        </a>
+      </li>
+      <li>
+        <a class="nav-link" data-page="about" href="#">
+          ℹ️ About
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="overlay" id="overlay"></div>
+
+  <div class="mx-auto text-white min-h-screen flex flex-col max-w-sm sm:max-w-md md:max-w-lg overflow-hidden" id="homeSection">
+    <!-- Header -->
+    <div class="px-4 pt-6 pb-4 flex-grow">
+      <div class="flex items-center justify-center mb-6">
+        <div class="atom-icon">
+          <div class="electron"></div>
+          <div class="nucleus"></div>
+        </div>
+        <h1 class="text-3xl font-bold">Physics Calculator</h1>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Search Bar with Star Button -->
+        <div class="relative">
+          <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-white">search</span>
+          <input class="w-full input-bg rounded-full py-3 pl-12 pr-12 placeholder-gray-200 text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50" id="formulaSearch" placeholder="Search formulas" type="text"/>
+          <div class="search-fav-btn" id="searchFavBtn" title="View Favorites">
+            <span class="material-icons">star</span>
+          </div>
+          <ul class="absolute w-full suggestion-list rounded-lg mt-1 hidden shadow-lg z-10 max-h-48 overflow-y-auto" id="formulaList"></ul>
+        </div>
+
+        <!-- Variable to Find --> 
+        <div class="relative">
+          <span class="material-icons absolute left-4 top-1/2 transform -translate-y-1/2 text-white">swap_vert</span>
+          <select class="w-full input-bg rounded-full py-3 pl-12 pr-10 appearance-none text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50" id="variableSelect">
+            <option value="">Select variable to find</option>
+          </select>
+          <span class="material-icons absolute right-4 top-1/2 transform -translate-y-1/2 text-white pointer-events-none">expand_more</span>
+        </div>
+
+        <!-- Inputs -->
+        <div class="grid gap-4" id="inputsContainer"></div>
+
+        <!-- Calculate Button -->
+        <button class="w-full btn-primary font-bold py-3 rounded-full shadow-lg" id="calcBtn">Calculate</button>
+
+        <!-- Result -->
+        <div class="result-bg rounded-lg p-4 mt-4">
+          <h2 class="text-lg font-semibold text-white mb-2">Result</h2>
+          <p class="text-2xl font-bold text-white" id="result">0</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Calculations -->
+    <div class="history-bg text-gray-800 rounded-t-3xl px-4 py-6 mt-4">
+      <h2 class="text-xl font-bold mb-4">Recent Calculations</h2>
+      <div class="space-y-3" id="recentCalcs"></div>
+    </div>
+  </div>
+
+  <!-- Favorites Modal -->
+  <div class="modal" id="favoritesModal">
+    <div class="modal-content">
+      <button class="modal-close" id="favoritesModalClose">×</button>
+      <div class="favorites-page">
+        <h2>⭐ My Favorites</h2>
+        <div id="favoritesContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Blog Modal -->
+  <div class="modal" id="blogModal">
+    <div class="modal-content">
+      <button class="modal-close" id="blogModalClose">×</button>
+      <div class="blog-page">
+        <h2>📖 PhysicsCalculator Blog</h2>
+        <div id="blogContent">
+          <div class="blog-post">
+            <h3>Understanding Kinematics: The Foundation of Motion</h3>
+            <div class="blog-meta">Published: july 15, 2025 | By: Physicscalculator Team</div>
+            <div class="blog-excerpt">
+              Kinematics is the branch of mechanics that deals with the motion of objects without considering the forces that cause this motion. In this comprehensive guide, we'll explore the fundamental equations of motion and their real-world applications.
+            </div>
+            <button class="blog-read-more" onclick="showBlogPost('kinematics')">Read More</button>
+          </div>
+
+          <div class="blog-post">
+            <h3>Mastering Projectile Motion: From Theory to Practice</h3>
+            <div class="blog-meta">Published: July 10, 2025 | By: Physicscalculator Team</div>
+            <div class="blog-excerpt">
+              Projectile motion combines horizontal and vertical motion components to describe the path of objects launched through the air. Learn how to solve complex projectile problems step by step.
+            </div>
+            <button class="blog-read-more" onclick="showBlogPost('projectile')">Read More</button>
+          </div>
+
+          <div class="blog-post">
+            <h3>Energy and Work: The Fundamental Concepts</h3>
+            <div class="blog-meta">Published: July 6, 2025 | By: Physicscalculator Team</div>
+            <div class="blog-excerpt">
+              Work and energy are fundamental concepts in physics that help us understand how forces cause changes in motion. Discover the relationship between kinetic energy, potential energy, and work done.
+            </div>
+            <button class="blog-read-more" onclick="showBlogPost('energy')">Read More</button>
+          </div>
+
+          <div class="blog-post">
+            <h3>Waves and Oscillations: Understanding Periodic Motion</h3>
+            <div class="blog-meta">Published: June 28, 2025 | By: Physicscalculator Team</div>
+            <div class="blog-excerpt">
+              From simple harmonic motion to complex wave phenomena, oscillations are everywhere in physics. Learn about frequency, amplitude, and wave properties through practical examples.
+            </div>
+            <button class="blog-read-more" onclick="showBlogPost('waves')">Read More</button>
+          </div>
+
+          <div class="blog-post">
+            <h3>Introduction to Modern Physics: Quantum Mechanics Basics</h3>
+            <div class="blog-meta">Published: June 20, 2023 | By: Physicscalculator Team</div>
+            <div class="blog-excerpt">
+              Quantum mechanics revolutionized our understanding of the microscopic world. Explore the photoelectric effect, de Broglie wavelength, and the wave-particle duality of matter and light.
+            </div>
+            <button class="blog-read-more" onclick="showBlogPost('quantum')">Read More</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- About Modal -->
+  <div class="modal" id="aboutModal">
+    <div class="modal-content">
+      <button class="modal-close" id="aboutModalClose">×</button>
+      <div style="text-align: center; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #333; margin-bottom: 30px; font-size: 2.5rem;">About Physics Formulas Hub</h2>
+        
+        <div style="background: #f8f9ff; padding: 30px; border-radius: 15px; margin-bottom: 20px; text-align: left;">
+          <h3 style="color: #667eea; margin-bottom: 15px; font-size: 1.5rem;">🚀 About This Project</h3>
+          <p>Physics Formulas Hub is a comprehensive web application designed to help students, teachers, and physics enthusiasts quickly find and reference essential physics formulas.</p>
+        </div>
+
+        <div style="background: #f8f9ff; padding: 30px; border-radius: 15px; margin-bottom: 20px; text-align: left;">
+          <h3 style="color: #667eea; margin-bottom: 15px; font-size: 1.5rem;">👨‍💻 Developer</h3>
+          <p><strong>Name:</strong> Physics App Developer</p>
+          <p><strong>Mission:</strong> Cheack answers quick and easily</p>
+          <p><strong>Mail:</strong> feedbackphysicscalculator@gmail.com</p>
+        </div>
+
+        <div style="background: #f8f9ff; padding: 30px; border-radius: 15px; margin-bottom: 20px; text-align: left;">
+          <h3 style="color: #667eea; margin-bottom: 15px; font-size: 1.5rem;">📱 Features</h3>
+          <p>• Comprehensive formula database</p>
+          <p>• Smart search functionality</p>
+          <p>• Favorites system (up to 5 formulas)</p>
+          <p>• Responsive design</p>
+        </div>
+
+        <div style="display: flex; justify-content: center; gap: 30px; margin-top: 30px; flex-wrap: wrap;">
+          <a style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px 25px; border-radius: 10px; text-decoration: none;" href="mailto:feedbackphysicscalculator@gmail.com">📧 Email</a>
+          <!-- <a style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px 25px; border-radius: 10px; text-decoration: none;" href="#">💬 Feedback</a> -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full Blog Post Modal -->
+  <div class="modal" id="fullBlogModal">
+    <div class="modal-content">
+      <button class="modal-close" id="fullBlogModalClose">×</button>
+      <div class="full-blog-post" id="fullBlogContent">
+        <!-- Blog post content will be loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <script src="formulas.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
