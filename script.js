@@ -15,11 +15,59 @@ const resultEl = document.getElementById("result");
 const recentCalcs = document.getElementById("recentCalcs");
 const searchFavBtn = document.getElementById("searchFavBtn");
 
+// === FIXED Live Search & Keyboard Navigation ===
+
+// Fixed live search function
+formulaSearch.addEventListener("input", () => {
+  const searchTerm = formulaSearch.value.trim().toLowerCase();
+  renderFormulaList(searchTerm);
+});
+
+// Press Enter in search box → select first visible formula
+formulaSearch.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const firstItem = formulaList.querySelector(".formula-item");
+    if (firstItem) firstItem.click();
+  }
+});
+
+// FIXED: Enhanced Enter key navigation for variable inputs
+inputsContainer.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    
+    const inputs = Array.from(inputsContainer.querySelectorAll("input"));
+    const currentIndex = inputs.indexOf(document.activeElement);
+    
+    if (currentIndex !== -1 && currentIndex < inputs.length - 1) {
+      // Move to next input
+      inputs[currentIndex + 1].focus();
+    } else {
+      // Last input or no input focused - perform calculation
+      performCalculation();
+    }
+  }
+});
+
+// Make Tab navigation work properly
+inputsContainer.addEventListener("keydown", (e) => {
+  if (e.key === "Tab") {
+    const inputs = Array.from(inputsContainer.querySelectorAll("input"));
+    const currentIndex = inputs.indexOf(document.activeElement);
+    if (currentIndex !== -1) {
+      e.preventDefault();
+      const nextIndex = (currentIndex + (e.shiftKey ? -1 : 1) + inputs.length) % inputs.length;
+      inputs[nextIndex].focus();
+    }
+  }
+});
+
 // Blog posts data
 const blogPosts = {
   kinematics: {
     title: "Understanding Kinematics: The Foundation of Motion",
-    meta: "Published: January 15, 2024 | By: Physics Hub Team",
+    meta: "Published: July 15, 2025 | By: Physicscalculator Team",
     content: `
       <div class="blog-content">
         <h3>What is Kinematics?</h3>
@@ -58,7 +106,7 @@ const blogPosts = {
   },
   projectile: {
     title: "Mastering Projectile Motion: From Theory to Practice",
-    meta: "Published: January 10, 2024 | By: Physics Hub Team",
+    meta: "Published: July 10, 2025 | By: Physicscalculator Team",
     content: `
       <div class="blog-content">
         <h3>What is Projectile Motion?</h3>
@@ -100,7 +148,7 @@ const blogPosts = {
   },
   energy: {
     title: "Energy and Work: The Fundamental Concepts",
-    meta: "Published: January 5, 2024 | By: Physics Hub Team",
+    meta: "Published: July 6, 2025 | By: Physicscalculator Team",
     content: `
       <div class="blog-content">
         <h3>Understanding Energy</h3>
@@ -143,7 +191,7 @@ const blogPosts = {
   },
   waves: {
     title: "Waves and Oscillations: Understanding Periodic Motion",
-    meta: "Published: December 28, 2023 | By: Physics Hub Team",
+    meta: "Published: June 28, 2025 | By: Physicscalculator Team",
     content: `
       <div class="blog-content">
         <h3>What are Waves?</h3>
@@ -198,7 +246,7 @@ const blogPosts = {
   },
   quantum: {
     title: "Introduction to Modern Physics: Quantum Mechanics Basics",
-    meta: "Published: December 20, 2023 | By: Physics Hub Team",
+    meta: "Published: June 20, 2025 | By: Physicscalculator Team",
     content: `
       <div class="blog-content">
         <h3>The Quantum Revolution</h3>
@@ -334,7 +382,6 @@ function formatScientific(value, unit) {
 }
 
 // Unit conversion functions
-// Enhanced unit conversion functions with missing units and better error handling
 function convertToBase(value, unit) {
   if (isNaN(value) || !isFinite(value)) return NaN;
   
@@ -372,15 +419,15 @@ function convertToBase(value, unit) {
     // Activity
     'Ci': 3.7e10,
     
-    // Angles - CRITICAL: Convert to radians for calculations
+    // Angles - Convert to radians for calculations
     '°': Math.PI/180,
-    'rad': 1, // Already in base unit
+    'rad': 1,
     
     // Percentages
     '%': 0.01,
     
     // Angular velocity
-    'rpm': Math.PI/30, // Convert RPM to rad/s
+    'rpm': Math.PI/30,
     
     // Astronomical units
     'AU': 1.496e11
@@ -429,15 +476,15 @@ function convertFromBase(value, unit) {
     // Activity
     'Ci': 1/3.7e10,
     
-    // Angles - CRITICAL: Convert from radians back to display unit
+    // Angles - Convert from radians back to display unit
     '°': 180/Math.PI,
-    'rad': 1, // Already in base unit
+    'rad': 1,
     
     // Percentages
     '%': 100,
     
     // Angular velocity
-    'rpm': 30/Math.PI, // Convert rad/s to RPM
+    'rpm': 30/Math.PI,
     
     // Astronomical units
     'AU': 1/1.496e11
@@ -448,30 +495,6 @@ function convertFromBase(value, unit) {
   
   if (unit === '' || !unit) return value;
   return value * (conversions[unit] || 1);
-}
-
-// Enhanced angle conversion utility
-function convertAngle(value, fromUnit, toUnit) {
-  if (fromUnit === toUnit) return value;
-  
-  // Convert to radians first
-  let radians;
-  if (fromUnit === '°') {
-    radians = value * Math.PI / 180;
-  } else if (fromUnit === 'rad') {
-    radians = value;
-  } else {
-    return NaN; // Unknown unit
-  }
-  
-  // Convert from radians to target unit
-  if (toUnit === '°') {
-    return radians * 180 / Math.PI;
-  } else if (toUnit === 'rad') {
-    return radians;
-  } else {
-    return NaN; // Unknown unit
-  }
 }
 
 // Fixed calculation function with proper error handling
@@ -565,57 +588,16 @@ function performCalculation() {
   }
 }
 
-// Example of fixed formula with proper angle handling
-const fixedProjectileRangeFormula = {
-  name: "Projectile Range (R = u²sin2θ/g)",
-  category: "Projectile Motion",
-  variables: [
-    { symbol: "R", name: "Range", units: ["m", "cm", "km"], defaultUnit: "m" },
-    { symbol: "u", name: "Initial velocity", units: ["m/s"], defaultUnit: "m/s" },
-    { symbol: "θ", name: "Angle", units: ["°", "rad"], defaultUnit: "°" },
-    { symbol: "g", name: "Gravity", units: ["m/s²"], defaultUnit: "m/s²" }
-  ],
-  solve: (target, vars) => {
-    // Note: vars.θ is already in radians due to convertToBase()
-    const theta_rad = vars.θ; // Already converted to radians
-    
-    switch(target) {
-      case "R": 
-        return vars.u * vars.u * Math.sin(2 * theta_rad) / vars.g;
-      case "u": 
-        const sinValue = Math.sin(2 * theta_rad);
-        if (sinValue <= 0) throw new Error("Invalid angle for this calculation");
-        return Math.sqrt(vars.R * vars.g / sinValue);
-      case "θ": 
-        const argValue = vars.R * vars.g / (vars.u * vars.u);
-        if (argValue > 1 || argValue < -1) throw new Error("No valid angle exists for these parameters");
-        return Math.asin(argValue) / 2; // Result in radians, will be converted back by convertFromBase
-      case "g": 
-        return vars.u * vars.u * Math.sin(2 * theta_rad) / vars.R;
-      default:
-        throw new Error("Unknown target variable");
-    }
-  }
-};
-
-// Debug function to test conversions
-function debugConversions() {
-  console.log("Testing angle conversions:");
-  console.log("45° to base:", convertToBase(45, "°")); // Should be π/4 ≈ 0.785
-  console.log("π/4 rad from base:", convertFromBase(Math.PI/4, "°")); // Should be 45
-  
-  console.log("\nTesting other conversions:");
-  console.log("100 cm to base:", convertToBase(100, "cm")); // Should be 1
-  console.log("1000 g to base:", convertToBase(1000, "g")); // Should be 1
-  console.log("1 kW to base:", convertToBase(1, "kW")); // Should be 1000
-}
-
-// UI Functions
-function showSuggestions(query = "") {
+// FIXED: UI Functions with proper search functionality
+function renderFormulaList(searchQuery = "") {
   formulaList.innerHTML = "";
   
-  // Show favorites first if no query or when clicking search
-  if (!query || query === "") {
+  let formulasToShow = [];
+  let showingResults = false;
+  
+  // If no search query, show favorites first, then all formulas
+  if (!searchQuery || searchQuery.trim() === "") {
+    // Show favorites first if they exist
     if (favorites.length > 0) {
       const favHeader = document.createElement("li");
       favHeader.className = "category-header";
@@ -624,7 +606,7 @@ function showSuggestions(query = "") {
       
       favorites.forEach(fav => {
         const li = document.createElement("li");
-        li.className = "favorite-item";
+        li.className = "formula-item favorite-item";
         li.innerHTML = `
           <span class="formula-name">${fav.name}</span>
           <button class="fav-btn active" title="Remove from favorites">
@@ -636,41 +618,65 @@ function showSuggestions(query = "") {
         li.querySelector('.fav-btn').onclick = (e) => {
           e.stopPropagation();
           removeFromFavorites(fav);
-          showSuggestions(query);
+          renderFormulaList(searchQuery);
         };
         
         formulaList.appendChild(li);
       });
+      showingResults = true;
     }
+    
+    // Show all formulas grouped by category
+    formulasToShow = formulas;
+  } else {
+    // Filter formulas based on search query
+    formulasToShow = formulas.filter(f => 
+      f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      f.category.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   }
   
-  // Filter formulas based on query
-  const filtered = formulas.filter(f => 
-    f.name.toLowerCase().includes(query.toLowerCase()) ||
-    f.category.toLowerCase().includes(query.toLowerCase())
-  );
+  // If search query exists but no results found
+  if (searchQuery && searchQuery.trim() !== "" && formulasToShow.length === 0) {
+    const noResults = document.createElement("li");
+    noResults.className = "no-results";
+    noResults.style.padding = "16px";
+    noResults.style.textAlign = "center";
+    noResults.style.color = "#666";
+    noResults.textContent = `No formulas found for "${searchQuery}"`;
+    formulaList.appendChild(noResults);
+    formulaList.classList.remove("hidden");
+    return;
+  }
   
-  // Group by category
+  // Group formulas by category
   const grouped = {};
-  filtered.forEach(f => {
+  formulasToShow.forEach(f => {
     if (!grouped[f.category]) grouped[f.category] = [];
     grouped[f.category].push(f);
   });
   
+  // Render categories and formulas
   Object.keys(grouped).forEach(category => {
-    if (query || favorites.length === 0) {
-      const categoryHeader = document.createElement("li");
-      categoryHeader.className = "category-header";
-      categoryHeader.textContent = category;
-      formulaList.appendChild(categoryHeader);
+    // Add some spacing if we already showed favorites
+    if (showingResults && Object.keys(grouped).indexOf(category) === 0) {
+      const spacer = document.createElement("li");
+      spacer.style.height = "8px";
+      formulaList.appendChild(spacer);
     }
+    
+    const categoryHeader = document.createElement("li");
+    categoryHeader.className = "category-header";
+    categoryHeader.textContent = category;
+    formulaList.appendChild(categoryHeader);
     
     grouped[category].forEach(f => {
       const li = document.createElement("li");
       const isFav = isFavorite(f);
+      li.className = "formula-item";
       
       li.innerHTML = `
-        <span class="formula-name">${f.name}</span>
+        <span class="formula-name" style="cursor: pointer; flex: 1;">${f.name}</span>
         <button class="fav-btn ${isFav ? 'active' : ''}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
           <span class="material-icons">${isFav ? 'star' : 'star_border'}</span>
         </button>
@@ -696,10 +702,16 @@ function showSuggestions(query = "") {
       };
       
       formulaList.appendChild(li);
+      showingResults = true;
     });
   });
   
-  formulaList.classList.toggle("hidden", filtered.length === 0 && favorites.length === 0);
+  // Always show the list if we have content
+  if (showingResults) {
+    formulaList.classList.remove("hidden");
+  } else {
+    formulaList.classList.add("hidden");
+  }
 }
 
 function selectFormula(f) {
@@ -966,15 +978,17 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   });
 
-  // Formula search functionality
-  formulaSearch.addEventListener("focus", () => showSuggestions());
-  formulaSearch.addEventListener("input", (e) => showSuggestions(e.target.value));
-  
+  // FIXED: Formula search functionality
+  formulaSearch.addEventListener("focus", () => {
+    renderFormulaList();
+  });
+
   searchFavBtn.addEventListener("click", () => {
     favoritesModal.classList.add('show');
     renderFavorites();
   });
 
+  // Hide suggestions when clicking outside
   document.addEventListener("click", (e) => {
     if (!formulaSearch.contains(e.target) && !formulaList.contains(e.target)) {
       formulaList.classList.add("hidden");
@@ -983,60 +997,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
   variableSelect.addEventListener("change", renderInputs);
 
-  // Calculate button
-  document.getElementById("calcBtn").addEventListener("click", () => {
-    if (!selectedFormula || !variableSelect.value) {
-      alert("Please select a formula and variable to calculate.");
-      return;
-    }
-
-    const targetSymbol = variableSelect.value;
-    const targetVar = selectedFormula.variables.find(v => v.symbol === targetSymbol);
-    const vars = {};
-
-    let hasError = false;
-    inputsContainer.querySelectorAll("div").forEach(div => {
-      const input = div.querySelector("input");
-      const unitSel = div.querySelector("select");
-      const value = parseFloat(input.value);
-      
-      if (isNaN(value)) {
-        hasError = true;
-        input.style.borderColor = "red";
-        return;
-      }
-      
-      input.style.borderColor = "";
-      const baseValue = convertToBase(value, unitSel.value);
-      vars[input.dataset.symbol] = baseValue;
-    });
-
-    if (hasError) {
-      alert("Please enter valid numbers for all fields.");
-      return;
-    }
-
-    try {
-      const result = selectedFormula.solve(targetSymbol, vars);
-      if (isNaN(result) || !isFinite(result)) {
-        throw new Error("Invalid calculation result");
-      }
-      
-      const displayValue = convertFromBase(result, targetVar.defaultUnit);
-      const formattedResult = formatScientific(displayValue, targetVar.defaultUnit);
-      
-      resultEl.innerHTML = formattedResult;
-
-      const historyItem = `${selectedFormula.name.split('(')[0].trim()}: ${targetSymbol} = ${formattedResult}`;
-      history.unshift(historyItem);
-      if (history.length > 10) history.pop();
-      renderHistory();
-      
-    } catch (error) {
-      alert("Error in calculation. Please check your inputs.");
-      console.error(error);
-    }
-  });
+  // Calculate button with improved error handling
+  document.getElementById("calcBtn").addEventListener("click", performCalculation);
 
   // Initialize
   renderHistory();
